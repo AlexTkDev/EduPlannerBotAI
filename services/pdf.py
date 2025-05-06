@@ -1,5 +1,4 @@
 from fpdf import FPDF
-import os
 
 
 def save_plan_to_pdf(plan: list, user_id: int) -> str:

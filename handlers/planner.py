@@ -16,5 +16,7 @@ async def handle_message(message: types.Message):
     save_user_plan(message.from_user.id, plan)
     await schedule_reminders(message.from_user.id, plan)
 
-    await message.answer_document(document=types.FSInputFile(pdf_path), caption="📘 Твой учебный план")
-    await message.answer_photo(photo=types.FSInputFile(chart_path), caption="📊 График обучения")
+    await message.answer_document(document=types.FSInputFile(pdf_path),
+                                  caption="📘 Твой учебный план")
+    await message.answer_photo(photo=types.FSInputFile(chart_path),
+                               caption="📊 График обучения")

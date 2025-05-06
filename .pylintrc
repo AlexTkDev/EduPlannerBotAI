@@ -1,0 +1,16 @@
+[MASTER]
+# Python code to analyze
+ignore=venv,.venv
+
+[MESSAGES CONTROL]
+# Disable warnings about missing docstrings
+disable=missing-module-docstring,
+        missing-function-docstring
+
+[FORMAT]
+# Max line length
+max-line-length=100
+
+[REPORTS]
+# Disable score report
+reports=no
