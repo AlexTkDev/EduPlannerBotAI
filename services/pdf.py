@@ -9,7 +9,7 @@ def save_plan_to_pdf(plan_lines: list[str], user_id: int) -> str:
 
     filename = f"plans/plan_{user_id}.pdf"
 
-    # Создаем простой PDF без кастомных шрифтов, которые могут отсутствовать
+    # Create a PDF object
     pdf = FPDF()
     pdf.add_page()
 

@@ -1,5 +1,6 @@
 import asyncio
 
+
 async def schedule_reminders(user_id: int, plan: list):
     # Emulate scheduling reminders
     for i, task in enumerate(plan, start=1):

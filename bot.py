@@ -9,7 +9,7 @@ from aiogram.client.default import DefaultBotProperties
 from config import TOKEN
 from handlers import start, planner
 
-# Создаем необходимые директории
+# Create necessary directories
 os.makedirs("plans", exist_ok=True)
 os.makedirs("fonts", exist_ok=True)
 

@@ -3,7 +3,7 @@ import asyncio
 from openai import OpenAI, RateLimitError, APIError, OpenAIError
 from config import OPENAI_API_KEY
 
-# Настройка логгера
+# Configure logging
 logger = logging.getLogger(__name__)
 
 # Initialize client
@@ -11,7 +11,7 @@ client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 # Max retries and delay between retries
 MAX_RETRIES = 3
-RETRY_DELAY = 5  # Увеличиваем задержку между попытками
+RETRY_DELAY = 5  # Icrease delay for each retry
 
 
 # Локальный генератор
@@ -61,7 +61,7 @@ async def generate_study_plan(topic: str) -> list:
         except RateLimitError as e:
             logger.warning("Rate limit error: %s. Retrying in %s seconds...",
                            str(e), RETRY_DELAY * (attempt + 1))
-            await asyncio.sleep(RETRY_DELAY * (attempt + 1))  # Экспоненциальная задержка
+            await asyncio.sleep(RETRY_DELAY * (attempt + 1))  # Exponential backoff
 
         except (APIError, OpenAIError) as e:
             logger.error("OpenAI API error: %s", str(e))
@@ -72,6 +72,6 @@ async def generate_study_plan(topic: str) -> list:
             logger.error("Unexpected error: %s", str(e))
             return generate_local_plan(topic)
 
-    # Если все попытки исчерпаны, используем локальный генератор
+    # If all attempts fail, fallback to local generator
     logger.warning("All OpenAI API attempts failed, using local generator")
     return generate_local_plan(topic)

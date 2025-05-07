@@ -60,20 +60,20 @@ EduPlannerBotAI/
 
 ## 🛠 Technologies Used
 
-| Component         | Purpose                                |
-|------------------|----------------------------------------|
-| Python 3.8+       | Programming language                   |
-| aiogram 3.x       | Telegram Bot Framework                 |
-| OpenAI API        | LLM for text generation                |
-| matplotlib        | Chart rendering                        |
-| fpdf              | PDF file generation                    |
-| TinyDB            | Lightweight NoSQL database             |
-| python-dotenv     | Environment variable management        |
+| Component     | Purpose                                |
+|---------------|----------------------------------------|
+| Python 3.10+  | Programming language                   |
+| aiogram 3.x   | Telegram Bot Framework                 |
+| OpenAI API    | LLM for text generation                |
+| matplotlib    | Chart rendering                        |
+| fpdf          | PDF file generation                    |
+| TinyDB        | Lightweight NoSQL database             |
+| python-dotenv | Environment variable management        |
 
 ## 🔧 CI/CD
 
 - GitHub Actions workflow for Pylint analysis
-- Python version compatibility: 3.8, 3.9, 3.10, 3.11, 3.12, 3.13
+- Python version compatibility: 3.10, 3.11, 3.12, 3.13
 - Custom `.pylintrc` configuration
 
 ## 🤝 Collaboration
