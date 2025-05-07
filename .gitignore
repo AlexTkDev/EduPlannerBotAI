@@ -177,6 +177,5 @@ cython_debug/
 *.db
 db.json
 
-.plans/*.pdf
-.plans/*.txt
+.plans/*
 *.png
