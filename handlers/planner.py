@@ -72,6 +72,8 @@ async def handle_topic(message: types.Message, state: FSMContext):
             inline_keyboard=[
                 [types.InlineKeyboardButton(text="📊 Визуализировать план",
                                             callback_data="visualize_plan")],
+                [types.InlineKeyboardButton(text="⏰ Запланировать напоминания",
+                                            callback_data="schedule_reminders")],
                 [types.InlineKeyboardButton(text="🔄 Создать новый план",
                                             callback_data="new_plan")],
                 [types.InlineKeyboardButton(text="👋 Ничего, хорошего дня!",
@@ -97,6 +99,33 @@ async def handle_visualize_plan(callback: types.CallbackQuery, state: FSMContext
     await callback.message.answer_photo(
         photo=types.FSInputFile(chart_path),
         caption="📊 Визуализация твоего учебного плана"
+    )
+
+
+@router.callback_query(PlanFormat.waiting_for_next_action, F.data == "schedule_reminders")
+async def handle_reminders(callback: types.CallbackQuery, state: FSMContext):
+    from services.reminders import schedule_reminders
+
+    await callback.answer()
+    user_id = callback.from_user.id
+
+    # Get plan from state
+    user_data = await state.get_data()
+    plan = user_data.get("plan", [])
+
+    if not plan:
+        await callback.message.answer("План не найден. Попробуйте создать новый.")
+        return
+
+    # Start reminder scheduling
+    message = await callback.message.answer("⏳ Планирую напоминания...")
+
+    # Run async reminder scheduling task
+    reminders_count = await schedule_reminders(user_id, plan)
+
+    # Update message after scheduling completion
+    await message.edit_text(
+        f"✅ Запланировано {reminders_count} напоминаний для твоего учебного плана"
     )
 
 

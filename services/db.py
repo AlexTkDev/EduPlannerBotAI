@@ -4,25 +4,25 @@ db = TinyDB("db.json")
 
 
 def save_user_plan(user_id: int, plan: list):
-    """Сохранить учебный план пользователя в базу данных"""
-    User = Query()
-    db.upsert({"user_id": user_id, "plan": plan}, User.user_id == user_id)
+    """Save user study plan to the database"""
+    user_query = Query()
+    db.upsert({"user_id": user_id, "plan": plan}, user_query.user_id == user_id)
 
 
 def get_user_plan(user_id: int) -> list:
-    """Получить учебный план пользователя из базы данных"""
-    User = Query()
-    result = db.search(User.user_id == user_id)
+    """Get user study plan from the database"""
+    user_query = Query()
+    result = db.search(user_query.user_id == user_id)
     return result[0].get("plan", []) if result else []
 
 
 def get_all_user_plans(user_id: int) -> list:
-    """Получить все планы конкретного пользователя"""
-    User = Query()
-    return db.search(User.user_id == user_id)
+    """Get all user study plans from the database"""
+    user_query = Query()
+    return db.search(user_query.user_id == user_id)
 
 
 def delete_user_plan(user_id: int) -> bool:
-    """Удалить учебный план пользователя из базы данных"""
-    User = Query()
-    return bool(db.remove(User.user_id == user_id))
+    """Delete user study plan from the database"""
+    user_query = Query()
+    return bool(db.remove(user_query.user_id == user_id))
