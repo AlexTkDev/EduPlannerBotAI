@@ -5,10 +5,9 @@ from config import OPENAI_API_KEY
 
 openai.api_key = OPENAI_API_KEY
 
-# Max retries and delay between _
+# Max retries and delay between retries
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # seconds
-
 
 async def generate_study_plan(topic: str) -> list:
     for _ in range(MAX_RETRIES):
