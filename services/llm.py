@@ -1,6 +1,6 @@
 import asyncio
 import openai
-from openai import RateLimitError, APIError
+from openai import RateLimitError, APIError, OpenAIError
 from config import OPENAI_API_KEY
 
 openai.api_key = OPENAI_API_KEY
@@ -8,6 +8,7 @@ openai.api_key = OPENAI_API_KEY
 # Max retries and delay between _
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # seconds
+
 
 async def generate_study_plan(topic: str) -> list:
     for _ in range(MAX_RETRIES):
@@ -21,8 +22,6 @@ async def generate_study_plan(topic: str) -> list:
             return text.strip().split("\n")
         except RateLimitError:
             await asyncio.sleep(RETRY_DELAY)
-        except APIError as e:
+        except (APIError, OpenAIError) as e:
             return [f"Ошибка API: {str(e)}"]
-        except Exception as e:
-            return [f"Неизвестная ошибка: {str(e)}"]
     return ["Ошибка: превышен лимит запросов. Попробуйте позже."]
