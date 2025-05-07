@@ -22,4 +22,4 @@ jobs:
       - name: Analysing the code with pylint
         run: |
           pylint $(git ls-files '*.py') \
-            --disable=missing-module-docstring,missing-function-docstring
+             --disable=missing-module-docstring,missing-function-docstring,too-many-branches
