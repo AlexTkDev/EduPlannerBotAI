@@ -15,12 +15,13 @@ class PlanFormat(StatesGroup):
     """State machine for selecting the format of the study plan."""
     waiting_for_format = State()
     waiting_for_topic = State()
+    waiting_for_next_action = State()
 
     def __str__(self):
         return "PlanFormat FSM"
 
 
-@router.message(Command("plan"))  # Changed from /start to /plan
+@router.message(Command("plan"))
 async def cmd_plan(message: types.Message, state: FSMContext):
     await state.set_state(PlanFormat.waiting_for_format)
     await message.answer(
@@ -63,4 +64,29 @@ async def handle_topic(message: types.Message, state: FSMContext):
             document=types.FSInputFile(txt_path),
             caption="📄 Твой учебный план в TXT")
 
+    await state.set_state(PlanFormat.waiting_for_next_action)
+    await message.answer(
+        "Что ещё ты хотел бы сделать?",
+        reply_markup=types.InlineKeyboardMarkup(
+            inline_keyboard=[
+                [types.InlineKeyboardButton(text="🔄 Создать новый план",
+                                            callback_data="new_plan")],
+                [types.InlineKeyboardButton(text="👋 Ничего, хорошего дня!",
+                                            callback_data="goodbye")]
+            ]
+        )
+    )
+
+
+@router.callback_query(PlanFormat.waiting_for_next_action, F.data == "new_plan")
+async def handle_new_plan(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_text("Создаем новый план!")
+    await cmd_plan(callback.message, state)
+
+
+@router.callback_query(PlanFormat.waiting_for_next_action, F.data == "goodbye")
+async def handle_goodbye(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await callback.message.edit_text("Хорошего дня! 👋 Буду рад помочь снова, когда понадобится.")
     await state.clear()
