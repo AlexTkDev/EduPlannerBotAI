@@ -14,7 +14,8 @@ async def generate_study_plan(topic: str) -> list:
         try:
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": f"Составь подробный учебный план по теме: {topic}"}]
+                messages=[{"role": "user",
+                           "content": f"Составь подробный учебный план по теме: {topic}"}]
             )
             text = response.choices[0].message.content
             return text.strip().split("\n")
