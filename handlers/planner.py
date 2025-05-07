@@ -5,6 +5,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 from services.llm import generate_study_plan
 from services.pdf import save_plan_to_pdf
+from services.txt import save_plan_to_txt
 from services.db import save_user_plan
 
 router = Router()
@@ -19,8 +20,8 @@ class PlanFormat(StatesGroup):
         return "PlanFormat FSM"
 
 
-@router.message(Command("start"))
-async def cmd_start(message: types.Message, state: FSMContext):
+@router.message(Command("plan"))  # Changed from /start to /plan
+async def cmd_plan(message: types.Message, state: FSMContext):
     await state.set_state(PlanFormat.waiting_for_format)
     await message.answer(
         "В каком формате хочешь получить план?\nВыбери: ",
@@ -56,9 +57,10 @@ async def handle_topic(message: types.Message, state: FSMContext):
         await message.answer_document(document=types.FSInputFile(pdf_path),
                                       caption="📘 Твой учебный план в PDF")
     else:
-        text_content = "\n".join(plan)
+        # Using the txt module instead of inline text conversion
+        txt_path = save_plan_to_txt(plan, message.from_user.id)
         await message.answer_document(
-            document=types.BufferedInputFile(text_content.encode(), filename="study_plan.txt"),
+            document=types.FSInputFile(txt_path),
             caption="📄 Твой учебный план в TXT")
 
     await state.clear()
