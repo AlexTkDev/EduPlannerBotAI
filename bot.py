@@ -30,8 +30,10 @@ if __name__ == "__main__":
         try:
             logger.info("Starting bot...")
             await dp.start_polling(bot)
-        except Exception as e:
-            logger.error(f"Error starting bot: {e}")
+        except (KeyboardInterrupt, SystemExit):
+            logger.info("Bot stopped!")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Error starting bot: %s", e)
 
 
     asyncio.run(main())

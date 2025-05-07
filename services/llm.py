@@ -17,7 +17,7 @@ RETRY_DELAY = 5  # Увеличиваем задержку между попыт
 # Локальный генератор
 def generate_local_plan(topic: str) -> list:
     """Generate a basic study plan without using API"""
-    logger.info(f"Using local plan generator for topic: {topic}")
+    logger.info("Using local plan generator for topic: %s", topic)
 
     plan = [
         f"Учебный план по теме: {topic}",
@@ -45,7 +45,8 @@ async def generate_study_plan(topic: str) -> list:
     for attempt in range(MAX_RETRIES):
         try:
             logger.info(
-                f"Generating study plan for topic: {topic} (attempt {attempt + 1}/{MAX_RETRIES})")
+                "Generating study plan for topic: %s (attempt %s/%s)",
+                topic, attempt + 1, MAX_RETRIES)
 
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -58,16 +59,17 @@ async def generate_study_plan(topic: str) -> list:
             return text.strip().split("\n")
 
         except RateLimitError as e:
-            logger.warning(f"Rate limit error: {str(e)}. Retrying in {RETRY_DELAY} seconds...")
+            logger.warning("Rate limit error: %s. Retrying in %s seconds...",
+                           str(e), RETRY_DELAY * (attempt + 1))
             await asyncio.sleep(RETRY_DELAY * (attempt + 1))  # Экспоненциальная задержка
 
         except (APIError, OpenAIError) as e:
-            logger.error(f"OpenAI API error: {str(e)}")
+            logger.error("OpenAI API error: %s", str(e))
             logger.info("Falling back to local plan generator")
             return generate_local_plan(topic)
 
-        except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Unexpected error: %s", str(e))
             return generate_local_plan(topic)
 
     # Если все попытки исчерпаны, используем локальный генератор

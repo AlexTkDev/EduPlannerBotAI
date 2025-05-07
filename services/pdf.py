@@ -22,7 +22,7 @@ def save_plan_to_pdf(plan_lines: list[str], user_id: int) -> str:
         else:
             # Fallback to standard font
             pdf.set_font("Arial", size=12)
-    except Exception:
+    except (IOError, RuntimeError):  # Specify expected exceptions
         # If error with custom font, use standard
         pdf.set_font("Arial", size=12)
 
@@ -30,7 +30,7 @@ def save_plan_to_pdf(plan_lines: list[str], user_id: int) -> str:
     for line in plan_lines:
         try:
             pdf.multi_cell(0, 10, txt=line)
-        except Exception:
+        except (UnicodeEncodeError, RuntimeError):  # Specify expected exceptions
             # Handle encoding issues
             pdf.multi_cell(0, 10, txt="[Text encoding error]")
 
