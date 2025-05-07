@@ -26,8 +26,8 @@ pip install -r requirements.txt
 ```
 
 ### 3. Create .env file
-Create a `.env` file in the root directory:
-```env
+Create a `.env` file in the root directory or rename `.env.example` to `.env` and fill in your tokens:
+```bash
 BOT_TOKEN=your_telegram_bot_token
 OPENAI_API_KEY=your_openai_api_key
 ```
