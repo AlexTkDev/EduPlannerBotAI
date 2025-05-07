@@ -104,7 +104,7 @@ async def handle_visualize_plan(callback: types.CallbackQuery, state: FSMContext
 
 @router.callback_query(PlanFormat.waiting_for_next_action, F.data == "schedule_reminders")
 async def handle_reminders(callback: types.CallbackQuery, state: FSMContext):
-    from services.reminders import schedule_reminders
+    from services.reminders import schedule_reminders # pylint: disable=import-outside-toplevel
 
     await callback.answer()
     user_id = callback.from_user.id
