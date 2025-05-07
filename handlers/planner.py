@@ -11,8 +11,12 @@ router = Router()
 
 
 class PlanFormat(StatesGroup):
+    """State machine for selecting the format of the study plan."""
     waiting_for_format = State()
     waiting_for_topic = State()
+
+    def __str__(self):
+        return "PlanFormat FSM"
 
 
 @router.message(Command("start"))
@@ -31,8 +35,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
 @router.callback_query(F.data.startswith("format_"))
 async def process_format(callback: types.CallbackQuery, state: FSMContext):
-    format_selected = callback.data.split("_")[1]
-    await state.update_data(format=format_selected)
+    selected_format = callback.data.split("_")[1]
+    await state.update_data(selected_format=selected_format)
     await state.set_state(PlanFormat.waiting_for_topic)
     await callback.message.edit_text("Теперь отправь тему для учебного плана 📚")
     await callback.answer()
@@ -41,13 +45,13 @@ async def process_format(callback: types.CallbackQuery, state: FSMContext):
 @router.message(PlanFormat.waiting_for_topic)
 async def handle_topic(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
-    format = user_data.get("format")
+    selected_format = user_data.get("selected_format")
     topic = message.text.strip()
 
     plan = await generate_study_plan(topic)
     save_user_plan(message.from_user.id, plan)
 
-    if format == "pdf":
+    if selected_format == "pdf":
         pdf_path = save_plan_to_pdf(plan, message.from_user.id)
         await message.answer_document(document=types.FSInputFile(pdf_path),
                                       caption="📘 Твой учебный план в PDF")
