@@ -1,16 +1,16 @@
-import openai
 import asyncio
+import openai
 from openai import RateLimitError, APIError
 from config import OPENAI_API_KEY
 
 openai.api_key = OPENAI_API_KEY
 
-# Max retries and delay between attempts
+# Max retries and delay between _
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # seconds
 
 async def generate_study_plan(topic: str) -> list:
-    for attempt in range(MAX_RETRIES):
+    for _ in range(MAX_RETRIES):
         try:
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
