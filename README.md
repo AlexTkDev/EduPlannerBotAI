@@ -87,7 +87,7 @@ We welcome contributions! If you'd like to improve this bot:
 5. Submit a pull request
 
 ## 📬 Contact
-Created with ❤️ for educational purposes. Feedback and collaboration:
+Created with ❤️. Feedback and collaboration:
 [@Aleksandr_Tk](https://t.me/Aleksandr_Tk)
 
 ## 📄 License
