@@ -14,7 +14,7 @@ MAX_RETRIES = 3
 RETRY_DELAY = 5  # Icrease delay for each retry
 
 
-# Локальный генератор
+# Local plan generator
 def generate_local_plan(topic: str) -> list:
     """Generate a basic study plan without using API"""
     logger.info("Using local plan generator for topic: %s", topic)
@@ -37,7 +37,7 @@ def generate_local_plan(topic: str) -> list:
 
 async def generate_study_plan(topic: str) -> list:
     """Generate a study plan using OpenAI API or fallback to local generation"""
-    # Проверка наличия API ключа
+    # Check if OpenAI API key is set
     if not OPENAI_API_KEY:
         logger.warning("OpenAI API key is missing, using local generator")
         return generate_local_plan(topic)
@@ -61,7 +61,7 @@ async def generate_study_plan(topic: str) -> list:
         except RateLimitError as e:
             logger.warning("Rate limit error: %s. Retrying in %s seconds...",
                            str(e), RETRY_DELAY * (attempt + 1))
-            await asyncio.sleep(RETRY_DELAY * (attempt + 1))  # Exponential backoff
+            await asyncio.sleep(RETRY_DELAY * (attempt + 1))
 
         except (APIError, OpenAIError) as e:
             logger.error("OpenAI API error: %s", str(e))
