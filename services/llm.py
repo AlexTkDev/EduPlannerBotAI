@@ -6,7 +6,7 @@ openai.api_key = OPENAI_API_KEY
 
 async def generate_study_plan(topic: str) -> list:
     response = openai.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4.1",
         messages=[{"role": "user", "content": f"Составь подробный учебный план по теме: {topic}"}]
     )
     text = response.choices[0].message.content
