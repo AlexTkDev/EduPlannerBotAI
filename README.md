@@ -1,18 +1,14 @@
 # EduPlannerBotAI
 
-**EduPlannerBotAI** is a Telegram bot built with `aiogram 3.x` and powered by OpenAI GPT. It generates personalized study plans, exports them to PDF, visualizes them as charts, and schedules reminders. All data is stored using TinyDB.
-
----
+**EduPlannerBotAI** is a Telegram bot built with `aiogram 3.x` and powered by OpenAI GPT. It generates personalized study plans, exports them to PDF/TXT, visualizes them as charts, and schedules reminders. All data is stored using TinyDB.
 
 ## 📌 Features
 
 - 📚 Generate personalized study plans (LLM/OpenAI)
-- 📝 Export study plans to PDF
+- 📝 Export study plans to PDF/TXT
 - 📊 Visualize plans with charts (matplotlib)
 - ⏰ Schedule reminders (async simulation)
 - 🗄️ Store data using TinyDB
-
----
 
 ## 🚀 Quick Start
 
@@ -41,8 +37,6 @@ OPENAI_API_KEY=your_openai_api_key
 python bot.py
 ```
 
----
-
 ## ⚙️ Project Structure
 ```
 EduPlannerBotAI/
@@ -51,10 +45,11 @@ EduPlannerBotAI/
 ├── handlers/               # Command and message handlers
 │   ├── __init__.py
 │   ├── start.py            # /start and greeting
-│   └── planner.py          # Handle user requests
+│   └── planner.py          # Study plan generation flow
 ├── services/               # Core logic and helper functions
 │   ├── llm.py              # OpenAI integration
 │   ├── pdf.py              # PDF export
+│   ├── txt.py              # TXT export
 │   ├── chart.py            # Chart generation
 │   ├── reminders.py        # Reminder simulation
 │   └── db.py               # TinyDB database
@@ -63,13 +58,11 @@ EduPlannerBotAI/
 └── README.md               # Project documentation
 ```
 
----
-
 ## 🛠 Technologies Used
 
 | Component         | Purpose                                |
 |------------------|----------------------------------------|
-| Python 3.11+      | Programming language                   |
+| Python 3.8+       | Programming language                   |
 | aiogram 3.x       | Telegram Bot Framework                 |
 | OpenAI API        | LLM for text generation                |
 | matplotlib        | Chart rendering                        |
@@ -77,11 +70,15 @@ EduPlannerBotAI/
 | TinyDB            | Lightweight NoSQL database             |
 | python-dotenv     | Environment variable management        |
 
----
+## 🔧 CI/CD
+
+- GitHub Actions workflow for Pylint analysis
+- Python version compatibility: 3.8, 3.9, 3.10, 3.11, 3.12, 3.13
+- Custom `.pylintrc` configuration
 
 ## 🤝 Collaboration
 
-We welcome contributions! If you'd like to improve this bot, fix bugs, or add features:
+We welcome contributions! If you'd like to improve this bot:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature-name`)
@@ -89,13 +86,9 @@ We welcome contributions! If you'd like to improve this bot, fix bugs, or add fe
 4. Push to your fork
 5. Submit a pull request
 
----
-
 ## 📬 Contact
 Created with ❤️ for educational purposes. Feedback and collaboration:
 [@Aleksandr_Tk](https://t.me/Aleksandr_Tk)
-
----
 
 ## 📄 License
 MIT License
