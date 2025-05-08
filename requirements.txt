@@ -3,6 +3,5 @@ aiofiles
 python-dotenv
 openai
 fpdf
-matplotlib
 tinydb
 pylint
