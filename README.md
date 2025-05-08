@@ -74,7 +74,14 @@ EduPlannerBotAI/
 - Python version compatibility: 3.10, 3.11, 3.12, 3.13
 - Custom `.pylintrc` configuration
 
+## ⚠️ Handling Frequent 429 Errors
 
+If you're experiencing too many `429 Too Many Requests` errors, consider the following:
+
+* ⏱ Increase `BASE_RETRY_DELAY`
+* 🔁 Increase `MAX_RETRIES`
+* 🧠 Use a lighter OpenAI model (e.g., `gpt-3.5-turbo` instead of `gpt-4`)
+* 💳 Upgrade your OpenAI plan to one with a higher request quota
 ## 🤝 Collaboration
 
 We welcome contributions! If you'd like to improve this bot:
