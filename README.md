@@ -8,6 +8,7 @@
 - 📝 Export study plans to PDF/TXT
 - ⏰ Schedule reminders (async simulation)
 - 🗄️ Store data using TinyDB
+- 📊 Multiple Python version support (3.10-3.13)
 
 ## 🚀 Quick Start
 
@@ -72,6 +73,7 @@ EduPlannerBotAI/
 - GitHub Actions workflow for Pylint analysis
 - Python version compatibility: 3.10, 3.11, 3.12, 3.13
 - Custom `.pylintrc` configuration
+
 
 ## 🤝 Collaboration
 
