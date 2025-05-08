@@ -11,7 +11,7 @@ client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 # Max retries and delay between retries
 MAX_RETRIES = 3
-RETRY_DELAY = 5  # Icrease delay for each retry
+BASE_RETRY_DELAY = 5  # Base delay in seconds
 
 
 # Local plan generator
@@ -59,9 +59,11 @@ async def generate_study_plan(topic: str) -> list:
             return text.strip().split("\n")
 
         except RateLimitError as e:
+            # Calculate exponential backoff delay
+            exponential_delay = BASE_RETRY_DELAY * (2 ** attempt)
             logger.warning("Rate limit error: %s. Retrying in %s seconds...",
-                           str(e), RETRY_DELAY * (attempt + 1))
-            await asyncio.sleep(RETRY_DELAY * (attempt + 1))
+                           str(e), exponential_delay)
+            await asyncio.sleep(exponential_delay)
 
         except (APIError, OpenAIError) as e:
             logger.error("OpenAI API error: %s", str(e))

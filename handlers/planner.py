@@ -31,6 +31,10 @@ async def cmd_plan(message: types.Message, state: FSMContext):
 async def handle_topic(message: types.Message, state: FSMContext):
     topic = message.text.strip()
 
+    # Send waiting message
+    waiting_message = await message.answer(
+        "⏳ Пожалуйста, подождите немного. Составляю учебный план...")
+
     # Send "typing" action to show the bot is working
     await message.bot.send_chat_action(message.chat.id, "typing")
 
@@ -38,6 +42,9 @@ async def handle_topic(message: types.Message, state: FSMContext):
     plan = await generate_study_plan(topic)
     save_user_plan(message.from_user.id, plan)
     await state.update_data(plan=plan)
+
+    # Delete waiting message
+    await waiting_message.delete()
 
     # Send plan to chat
     plan_text = "\n".join(plan)
