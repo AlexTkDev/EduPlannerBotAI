@@ -54,7 +54,8 @@ async def handle_topic(message: types.Message, state: FSMContext):
     # Send plan to chat
     plan_text = "\n".join(plan)
     if len(plan_text) > 4000:
-        plan_text = plan_text[:4000] + "...\n(The plan is too long, the full version will be in the file)"
+        plan_text = plan_text[:4000] + "...\n(The plan is too long, the full version will \
+             be in the file)"
 
     await message.answer(f"📚 Your study plan:\n\n{plan_text}")
 
@@ -64,11 +65,21 @@ async def handle_topic(message: types.Message, state: FSMContext):
         "In which format do you want to save the plan?",
         reply_markup=types.InlineKeyboardMarkup(
             inline_keyboard=[
-                [types.InlineKeyboardButton(text="📄 pdf", callback_data="format_pdf"),
-                 types.InlineKeyboardButton(text="📄 txt", callback_data="format_txt")],
-                [types.InlineKeyboardButton(text="🔄 Skip", callback_data="format_skip")]
+                [
+                    types.InlineKeyboardButton(
+                        text="📄 pdf", callback_data="format_pdf"
+                    ),
+                    types.InlineKeyboardButton(
+                        text="📄 txt", callback_data="format_txt"
+                    ),
+                ],
+                [
+                    types.InlineKeyboardButton(
+                        text="🔄 Skip", callback_data="format_skip"
+                    )
+                ],
             ]
-        )
+        ),
     )
 
 
@@ -90,11 +101,14 @@ async def process_format(callback: types.CallbackQuery, state: FSMContext):
                 caption="📘 Your study plan in PDF"
             )
     else:
-        txt_path = await save_plan_to_txt(plan, callback.from_user.id if callback.from_user else 0)
+        txt_path = await save_plan_to_txt(
+            plan, callback.from_user.id if callback.from_user else 0)
         if isinstance(callback.message, Message):
             await callback.message.answer_document(
                 document=types.FSInputFile(txt_path),
-                caption="📄 Your study plan in TXT"
+                caption=(
+                    "📚 Your saved study plan"
+                ),
             )
     if isinstance(callback.message, Message):
         await show_next_actions(callback.message, state)
@@ -131,7 +145,9 @@ async def handle_reminders(callback: types.CallbackQuery, state: FSMContext):
             await callback.message.answer("Plan not found. Try creating a new one.")
         return
     # Start reminder scheduling
-    message = await callback.message.answer("⏳ Scheduling reminders...") if isinstance(callback.message, Message) else None
+    message = await callback.message.answer("⏳ Scheduling reminders...") if isinstance(
+        callback.message, Message
+        ) else None
     # Run async reminder scheduling task
     reminders_count = await schedule_reminders(user_id, plan)
     # Update message after scheduling completion
@@ -153,7 +169,8 @@ async def handle_new_plan(callback: types.CallbackQuery, state: FSMContext):
 async def handle_goodbye(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
     if isinstance(callback.message, Message):
-        await callback.message.edit_text("Have a nice day! 👋 I'll be happy to help again when you need it.")
+        await callback.message.edit_text("Have a nice day! 👋 I'll be happy to help \
+             again when you need it.")
     await state.clear()
 
 
@@ -173,4 +190,6 @@ async def cmd_my_plans(message: types.Message):
         await message.answer_document(document=types.FSInputFile(txt_path),
                                       caption="📚 Your saved study plan")
     else:
-        await message.answer(f"📚 Your saved study plan:\n\n{plan_text}")
+        await message.answer(
+            f"📚 Your saved study plan:\n\n{plan_text}"
+        )

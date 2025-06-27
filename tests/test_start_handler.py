@@ -1,13 +1,16 @@
 import pytest
-from aiogram.types import Message
 from handlers.start import start_handler
 
 class DummyBot:
-    async def send_message(self, chat_id, text, **kwargs):
+    """Dummy bot for testing purposes."""
+    def __init__(self):
+        self.last_message = None
+    async def send_message(self, chat_id, text):
         self.last_message = (chat_id, text)
         return None
 
 class DummyMessage:
+    """Dummy message for testing purposes."""
     def __init__(self):
         self.text = "/start"
         self.chat = type("Chat", (), {"id": 1})()

@@ -1,8 +1,7 @@
 import os
 import tempfile
-import pytest
-from services.db import save_user_plan, get_user_plan
 from tinydb import TinyDB
+from services.db import save_user_plan, get_user_plan
 
 def test_save_and_get_user_plan(monkeypatch):
     with tempfile.NamedTemporaryFile(delete=False) as tmp:

@@ -1,6 +1,6 @@
 import os
-import aiofiles
 import logging
+import aiofiles
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,6 @@ async def save_plan_to_txt(plan_lines: list[str], user_id: int) -> str:
             for line in plan_lines:
                 await f.write(line + "\n")
     except Exception as e:
-        logger.error(f"Failed to write TXT file: {e}")
+        logger.error("Failed to write TXT file: %s", e)
         raise
     return filename

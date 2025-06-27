@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 from services.llm import generate_local_plan, generate_study_plan
 
 @pytest.mark.parametrize("topic", ["Python", "Math", "History"])

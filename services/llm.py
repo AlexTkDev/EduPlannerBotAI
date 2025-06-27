@@ -39,7 +39,8 @@ async def generate_study_plan(topic: str) -> list:
     """Generate a study plan using OpenAI API or fallback to local generation"""
     # Check if OpenAI API key is set and client is initialized
     if not OPENAI_API_KEY or client is None:
-        logger.warning("OpenAI API key is missing or OpenAI client is not initialized, using local generator")
+        logger.warning("OpenAI API key is missing or OpenAI client is not initialized, \
+            using local generator")
         return generate_local_plan(topic)
 
     for attempt in range(MAX_RETRIES):
@@ -50,9 +51,15 @@ async def generate_study_plan(topic: str) -> list:
 
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=[{"role": "user",
-                           "content": f"Create a detailed study plan for the topic: {topic}. "
-                                      f"Split the plan into 5-7 steps."}]
+                messages=[
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Create a detailed study plan for the topic: {topic}. "
+                            f"Split the plan into 5-7 steps."
+                        ),
+                    }
+                ],
             )
 
             text = response.choices[0].message.content
