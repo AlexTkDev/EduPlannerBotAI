@@ -10,7 +10,7 @@
 - 📝 Export study plans to PDF/TXT
 - ⏰ Schedule reminders (async simulation)
 - 🗄️ Store data using TinyDB
-- 📊 Multiple Python version support (3.10-3.13)
+- 📊 Python 3.10–3.13 support
 
 ## 🚀 Quick Start
 
@@ -38,6 +38,23 @@ OPENAI_API_KEY=your_openai_api_key
 ```bash
 python bot.py
 ```
+
+## 🐳 Run with Docker
+
+You can run the bot in a container:
+```bash
+docker-compose up --build
+```
+Environment variables are loaded from `.env`.
+
+## 🧪 Testing & Code Quality
+
+- 100% of core logic is covered by automated tests (`pytest`).
+- Code style: PEP8, pylint score 10/10 (see `.pylintrc`).
+- To run tests:
+  ```bash
+  pytest
+  ```
 
 ## ⚙️ Project Structure
 ```
@@ -69,12 +86,21 @@ EduPlannerBotAI/
 | fpdf          | PDF file generation                    |
 | TinyDB        | Lightweight NoSQL database             |
 | python-dotenv | Environment variable management        |
+| aiofiles      | Asynchronous file operations           |
 
 ## 🔧 CI/CD
 
-- GitHub Actions workflow for Pylint analysis
+- GitHub Actions workflow for Pylint analysis and tests
 - Python version compatibility: 3.10, 3.11, 3.12, 3.13
 - Custom `.pylintrc` configuration
+
+## 📝 Release 2.0.0 Highlights
+
+- Full English codebase (comments, docstrings, messages)
+- PEP8 and pylint compliance (score 10/10)
+- Full test coverage for all services and handlers
+- Improved error handling and async file operations
+- Ready for open source and team development
 
 ## ⚠️ Handling Frequent 429 Errors
 
@@ -84,6 +110,7 @@ If you're experiencing too many `429 Too Many Requests` errors, consider the fol
 * 🔁 Increase `MAX_RETRIES`
 * 🧠 Use a lighter OpenAI model (e.g., `gpt-3.5-turbo` instead of `gpt-4`)
 * 💳 Upgrade your OpenAI plan to one with a higher request quota
+
 ## 🤝 Collaboration
 
 We welcome contributions! If you'd like to improve this bot:
