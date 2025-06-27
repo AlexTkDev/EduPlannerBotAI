@@ -17,7 +17,7 @@ os.makedirs("fonts", exist_ok=True)
 # Проверка наличия токенов
 if not TOKEN:
     print("[ERROR] BOT_TOKEN is not set in environment variables.", file=sys.stderr)
-    exit(1)
+    sys.exit(1)
 
 # Настройка логирования
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()

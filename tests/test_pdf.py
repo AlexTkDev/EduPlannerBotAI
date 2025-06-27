@@ -1,5 +1,4 @@
 import os
-import tempfile
 from services.pdf import save_plan_to_pdf
 
 def test_save_plan_to_pdf(tmp_path):

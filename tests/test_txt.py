@@ -1,5 +1,4 @@
 import os
-import asyncio
 import pytest
 from services.txt import save_plan_to_txt
 

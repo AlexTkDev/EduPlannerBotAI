@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 from services.reminders import schedule_reminders
 
 @pytest.mark.asyncio

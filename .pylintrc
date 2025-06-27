@@ -5,7 +5,9 @@ ignore=venv,.venv
 [MESSAGES CONTROL]
 # Disable warnings about missing docstrings
 disable=missing-module-docstring,
-        missing-function-docstring
+        missing-function-docstring,
+        too-few-public-methods,
+        missing-final-newline
 
 [FORMAT]
 # Max line length
