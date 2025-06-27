@@ -16,20 +16,20 @@ BASE_RETRY_DELAY = 5  # Base delay in seconds
 
 # Local plan generator
 def generate_local_plan(topic: str) -> list:
-    """Generate a basic study plan without using API"""
+    """Generate a basic study plan without using the API"""
     logger.info("Using local plan generator for topic: %s", topic)
 
     plan = [
-        f"Учебный план по теме: {topic}",
+        f"Study plan for topic: {topic}",
         "",
-        "Шаг 1. Изучите основы темы",
-        f"Шаг 2. Ознакомьтесь с ключевыми концепциями {topic}",
-        f"Шаг 3. Исследуйте примеры использования {topic}",
-        "Шаг 4. Выполните практические задания",
-        "Шаг 5. Закрепите материал с помощью упражнений",
-        "Шаг 6. Создайте собственный проект",
+        "Step 1. Learn the basics of the topic",
+        f"Step 2. Get familiar with key concepts of {topic}",
+        f"Step 3. Explore usage examples of {topic}",
+        "Step 4. Complete practical tasks",
+        "Step 5. Reinforce the material with exercises",
+        "Step 6. Create your own project",
         "",
-        "Регулярно повторяйте изученный материал"
+        "Review the learned material regularly"
     ]
 
     return plan
@@ -37,9 +37,9 @@ def generate_local_plan(topic: str) -> list:
 
 async def generate_study_plan(topic: str) -> list:
     """Generate a study plan using OpenAI API or fallback to local generation"""
-    # Check if OpenAI API key is set
-    if not OPENAI_API_KEY:
-        logger.warning("OpenAI API key is missing, using local generator")
+    # Check if OpenAI API key is set and client is initialized
+    if not OPENAI_API_KEY or client is None:
+        logger.warning("OpenAI API key is missing or OpenAI client is not initialized, using local generator")
         return generate_local_plan(topic)
 
     for attempt in range(MAX_RETRIES):
@@ -51,11 +51,14 @@ async def generate_study_plan(topic: str) -> list:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user",
-                           "content": f"Составь подробный учебный план по теме: {topic}. "
-                                      f"Раздели план на 5-7 шагов."}]
+                           "content": f"Create a detailed study plan for the topic: {topic}. "
+                                      f"Split the plan into 5-7 steps."}]
             )
 
             text = response.choices[0].message.content
+            if not text:
+                logger.error("OpenAI response content is None, falling back to local plan")
+                return generate_local_plan(topic)
             return text.strip().split("\n")
 
         except RateLimitError as e:
