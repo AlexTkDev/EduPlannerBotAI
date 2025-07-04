@@ -28,8 +28,8 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
         logging.StreamHandler(),
-        *( [logging.FileHandler(LOG_FILE)] if LOG_FILE else [] )
-    ]
+        *([logging.FileHandler(LOG_FILE)] if LOG_FILE else []),
+    ],
 )
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ dp.include_router(start.router)
 dp.include_router(planner.router)
 
 if __name__ == "__main__":
+
     async def main():
         try:
             logger.info("Starting bot...")
@@ -50,6 +51,5 @@ if __name__ == "__main__":
             logger.info("Bot stopped!")
         except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error("Error starting bot: %s", e)
-
 
     asyncio.run(main())
