@@ -14,12 +14,12 @@ from handlers import start, planner
 os.makedirs("plans", exist_ok=True)
 os.makedirs("fonts", exist_ok=True)
 
-# Проверка наличия токенов
+# Check for token presence
 if not TOKEN:
     print("[ERROR] BOT_TOKEN is not set in environment variables.", file=sys.stderr)
     sys.exit(1)
 
-# Настройка логирования
+# Logging setup
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 LOG_FILE = os.getenv("LOG_FILE")
 

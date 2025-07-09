@@ -134,7 +134,7 @@ env/
 ENV/
 env.bak/
 venv.bak/
-# .venv/  # НЕ добавлять, чтобы не удалять локальное окружение
+# .venv/  # Do NOT add, so as not to delete the local environment
 
 # IDEs
 .idea/

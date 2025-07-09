@@ -1,6 +1,6 @@
 # EduPlannerBotAI
 
-**EduPlannerBotAI** is a Telegram bot built with `aiogram 3.x` and powered by OpenAI GPT. It generates personalized study plans, exports them to PDF/TXT, and schedules reminders. All data is stored using TinyDB.
+**EduPlannerBotAI** is a Telegram bot built with `aiogram 3.x` and powered by OpenAI GPT. It generates personalized study plans, exports them to PDF/TXT, and sends reminders as Telegram messages. All data is stored using TinyDB.
 
 > **Note:** All code comments and docstrings are now in English for better international collaboration and code clarity.
 
@@ -8,7 +8,7 @@
 
 - 📚 Generate personalized study plans (LLM/OpenAI)
 - 📝 Export study plans to PDF/TXT
-- ⏰ Schedule reminders (async simulation)
+- ⏰ Send reminders as Telegram messages for each study step
 - 🗄️ Store data using TinyDB
 - 📊 Python 3.10–3.13 support
 
@@ -46,6 +46,10 @@ You can run the bot in a container:
 docker-compose up --build
 ```
 Environment variables are loaded from `.env`.
+
+## 🔔 How Reminders Work
+
+When you choose to schedule reminders, the bot will send you a separate Telegram message for each step of your study plan. This ensures you receive timely notifications directly in your chat.
 
 ## 🧪 Testing & Code Quality
 
