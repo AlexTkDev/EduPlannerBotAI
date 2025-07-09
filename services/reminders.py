@@ -1,11 +1,12 @@
 import asyncio
 import logging
-from aiogram import Bot
+from typing import Any
+from aiogram.exceptions import TelegramAPIError
 
 logger = logging.getLogger(__name__)
 
 
-async def schedule_reminders(user_id: int, plan: list, bot: Bot):
+async def schedule_reminders(user_id: int, plan: list, bot: Any):
     """Schedule reminders for study plan steps and send messages to the user"""
     logger.info("Scheduling reminders for user %s", user_id)
 
@@ -16,7 +17,7 @@ async def schedule_reminders(user_id: int, plan: list, bot: Bot):
             reminder_text = f"⏰ Reminder {i}: {task}"
             try:
                 await bot.send_message(user_id, reminder_text)
-            except Exception as e:
+            except TelegramAPIError as e:
                 logger.error("Failed to send reminder to %s: %s", user_id, e)
             logger.info("Reminder for %s: day %s — %s", user_id, i, task)
             count += 1
