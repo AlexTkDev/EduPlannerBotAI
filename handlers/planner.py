@@ -149,7 +149,11 @@ async def handle_reminders(callback: types.CallbackQuery, state: FSMContext):
         callback.message, Message
         ) else None
     # Run async reminder scheduling task
-    reminders_count = await schedule_reminders(user_id, plan)
+    if callback.bot is None:
+        if isinstance(callback.message, Message):
+            await callback.message.answer("Internal error: bot instance is not available.")
+        return
+    reminders_count = await schedule_reminders(user_id, plan, callback.bot)
     # Update message after scheduling completion
     if isinstance(message, Message):
         await message.edit_text(
