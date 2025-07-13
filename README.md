@@ -1,16 +1,21 @@
 # EduPlannerBotAI
 
-**EduPlannerBotAI** is a Telegram bot built with `aiogram 3.x` and powered by OpenAI GPT. It generates personalized study plans, exports them to PDF/TXT, and sends reminders as Telegram messages. All data is stored using TinyDB.
+**EduPlannerBotAI** is a Telegram bot built with `aiogram 3.x` and powered by OpenAI GPT. It generates personalized study plans, exports them to PDF/TXT, and sends reminders as Telegram messages. All data is stored using TinyDB (no other DBs supported).
 
-> **Note:** All code comments and docstrings are now in English for better international collaboration and code clarity.
+> **Note:** All code comments and docstrings are in English for international collaboration and code clarity. All user-facing messages and buttons are automatically translated to the user's selected language.
 
 ## 📌 Features
 
-- 📚 Generate personalized study plans (LLM/OpenAI, fallback to Groq)
+- 📚 Generate personalized study plans (LLM/OpenAI, automatic fallback to Groq if OpenAI unavailable)
 - 📝 Export study plans to PDF/TXT
 - ⏰ Send reminders as Telegram messages for each study step
-- 🗄️ Store data using TinyDB
-- 📊 Python 3.10–3.13 support
+- 🗄️ Store data using TinyDB (no SQL/other DBs)
+- 🌐 Multilingual: English, Russian, Spanish — all messages, buttons, and files are translated in real time using LLMs (OpenAI or Groq)
+- 🏷️ All keyboards are always shown with a short message, ensuring buttons are reliably displayed
+- ❌ No empty or invisible messages — all user-facing text is always non-empty (prevents Telegram errors)
+- 🔄 Language selection buttons are not translated, so the language filter works correctly
+- 🤖 If translation is not possible, the original English text is sent
+- 🧩 Simple, maintainable, idiomatic codebase — ready for extension
 
 ## 🆕 Groq Fallback Integration
 
@@ -45,14 +50,14 @@ No other changes are needed — the bot will automatically use Groq if OpenAI is
 
 ## 🌐 Multilingual Support
 
-You can now choose your preferred language for all bot interactions! Use the `/language` command to select from English, Russian, or Spanish. The bot will automatically translate all responses, study plans, and reminders to your chosen language using LLMs (OpenAI or Groq). If translation is not possible, the original English text will be sent.
+You can choose your preferred language for all bot interactions! Use the `/language` command to select from English, Russian, or Spanish. The bot will automatically translate all responses, study plans, and reminders to your chosen language using LLMs (OpenAI or Groq fallback). If translation is not possible, the original English text will be sent.
 
 **Supported languages:**
 - English (`en`)
 - Русский (`ru`)
 - Español (`es`)
 
-Translations are performed in real time using the same LLMs that generate study plans, ensuring high-quality and context-aware results.
+Translations are performed in real time using the same LLMs that generate study plans, ensuring high-quality and context-aware results. Fallback to Groq is supported for both generation and translation if OpenAI is unavailable.
 
 ## 🚀 Quick Start
 
@@ -76,6 +81,7 @@ BOT_TOKEN=your_telegram_bot_token
 OPENAI_API_KEY=your_openai_api_key
 GROQ_API_KEY=your_groq_api_key
 ```
+All environment variables are loaded from `.env` automatically.
 
 ### 4. Run the bot
 ```bash
@@ -96,7 +102,7 @@ When you choose to schedule reminders, the bot will send you a separate Telegram
 
 ## 🧪 Testing & Code Quality
 
-- 100% of core logic is covered by automated tests (`pytest`).
+- 100% of core logic and all handlers are covered by automated tests (`pytest`).
 - Code style: PEP8, pylint score 10/10 (see `.pylintrc`).
 - To run tests:
   ```bash
@@ -111,9 +117,10 @@ EduPlannerBotAI/
 ├── handlers/               # Command and message handlers
 │   ├── __init__.py
 │   ├── start.py            # /start and greeting
-│   └── planner.py          # Study plan generation flow
+│   ├── planner.py          # Study plan generation flow
+│   └── language.py         # Language selection and filter
 ├── services/               # Core logic and helper functions
-│   ├── llm.py              # OpenAI and Groq integration
+│   ├── llm.py              # OpenAI and Groq integration, translation
 │   ├── pdf.py              # PDF export
 │   ├── txt.py              # TXT export
 │   ├── reminders.py        # Reminder simulation
@@ -129,8 +136,8 @@ EduPlannerBotAI/
 |---------------|----------------------------------------|
 | Python 3.10+  | Programming language                   |
 | aiogram 3.x   | Telegram Bot Framework                 |
-| OpenAI API    | LLM for text generation                |
-| Groq API      | Fallback LLM provider                  |
+| OpenAI API    | LLM for text generation and translation|
+| Groq API      | Fallback LLM provider (generation+translation) |
 | fpdf          | PDF file generation                    |
 | TinyDB        | Lightweight NoSQL database             |
 | python-dotenv | Environment variable management        |
@@ -142,27 +149,19 @@ EduPlannerBotAI/
 - Python version compatibility: 3.10, 3.11, 3.12, 3.13
 - Custom `.pylintrc` configuration
 
-## 📝 Release 2.1.0 Highlights
+## 📝 Release 3.0.0 Highlights
 
-- Full English codebase (comments, docstrings, messages)
-- PEP8 and pylint compliance (score 10/10)
-- Full test coverage for all services and handlers
-- Improved error handling and async file operations
-- Multilingual support with LLM-based translation
-- Telegram reminders for study plans
-- **Groq fallback LLM integration**
-- **Arli AI fully removed**
-- Ready for open source and team development
-
-## 🆕 2025 Updates
-
-- All messages and buttons always contain non-empty text, eliminating Telegram errors (Bad Request: text must be non-empty).
+- All user-facing messages and buttons always contain non-empty text, eliminating Telegram errors (Bad Request: text must be non-empty).
 - Keyboards (format selection, next actions) are always accompanied by a short message to ensure buttons are displayed reliably.
 - Language selection buttons are not translated, so the language filter works correctly.
-- The entire bot scenario is fully localized: all messages, buttons, and files are translated to the user's selected language.
-- The logic is maximally simplified, with no unnecessary conditions; all stages work reliably and predictably.
-- Fallback to Groq is supported for generation and translation if OpenAI is unavailable.
-- The project is ready for use and open for extension.
+- The entire bot scenario is fully localized: all messages, buttons, and files are translated to the user's selected language (English, Russian, Spanish).
+- Multilingual support is powered by LLM-based translation (OpenAI or Groq fallback).
+- Fallback to Groq is supported for both generation and translation if OpenAI is unavailable.
+- If translation is not possible, the original English text is sent.
+- Codebase is fully in English (comments, docstrings, messages), PEP8 and pylint compliant (score 10/10).
+- 100% test coverage for all core logic and handlers (pytest).
+- Logic is maximally simplified, with no unnecessary conditions; all stages work reliably and predictably.
+- Project is ready for open source use and easy extension.
 
 ## ⚠️ Handling Frequent 429 Errors
 
@@ -179,7 +178,7 @@ We welcome contributions! If you'd like to improve this bot:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature-name`)
-3. Commit your changes
+3. Commit your changes (all code and comments must be in English)
 4. Push to your fork
 5. Submit a pull request
 
