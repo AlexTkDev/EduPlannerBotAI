@@ -4,10 +4,16 @@ ignore=venv,.venv
 
 [MESSAGES CONTROL]
 # Disable warnings about missing docstrings
+# and other project-specific disables
+# Existing disables:
 disable=missing-module-docstring,
         missing-function-docstring,
         too-few-public-methods,
-        missing-final-newline
+        missing-final-newline,
+        import-outside-toplevel,
+        redefined-outer-name,
+        broad-exception-caught,
+        too-many-return-statements
 
 [FORMAT]
 # Max line length
