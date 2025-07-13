@@ -8,11 +8,12 @@ from services.db import get_user_language
 
 router = Router()
 
+
 @router.message(Command("start"))
 async def start_handler(message: types.Message, state: FSMContext):
     await send_translated(
         message,
-        "👋 Hi! I am a bot for creating study plans.\nUse the /plan command to start creating a study plan."
+        "👋 Hi! I am a bot for creating study plans.\nUse the /plan command to start creating a study plan.",
     )
     # Immediately prompt for language selection
     user_id = message.from_user.id if message.from_user else 0

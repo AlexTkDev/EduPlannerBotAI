@@ -1,14 +1,13 @@
+import re
 from aiogram import Router, types, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types.message import Message
-
 from services.llm import generate_study_plan, translate_text
 from services.pdf import save_plan_to_pdf
 from services.txt import save_plan_to_txt
 from services.db import save_user_plan, get_user_plan, get_user_language
-import re
 
 router = Router()
 
@@ -38,7 +37,9 @@ async def handle_topic(message: types.Message, state: FSMContext):
     topic = message.text.strip()
 
     # Send waiting message
-    await send_translated(message, "⏳ Please wait a moment. Generating your study plan...")
+    await send_translated(
+        message, "⏳ Please wait a moment. Generating your study plan..."
+    )
 
     # Send "typing" action to show the bot is working
     if message.bot and message.chat and message.chat.id:
@@ -62,21 +63,26 @@ async def handle_topic(message: types.Message, state: FSMContext):
     await state.set_state(PlanFormat.waiting_for_format)
     user_id = message.from_user.id if message.from_user else 0
     user_lang = get_user_language(user_id) or "en"
-    prompt = await translate_text("In which format do you want to save the plan?", user_lang)
+    prompt = await translate_text(
+        "In which format do you want to save the plan?", user_lang
+    )
     await send_translated(message, prompt)
     keyboard = types.InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 types.InlineKeyboardButton(
-                    text=await translate_text("📄 pdf", user_lang), callback_data="format_pdf"
+                    text=await translate_text("📄 pdf", user_lang),
+                    callback_data="format_pdf",
                 ),
                 types.InlineKeyboardButton(
-                    text=await translate_text("📄 txt", user_lang), callback_data="format_txt"
+                    text=await translate_text("📄 txt", user_lang),
+                    callback_data="format_txt",
                 ),
             ],
             [
                 types.InlineKeyboardButton(
-                    text=await translate_text("⏭ Skip", user_lang), callback_data="format_skip"
+                    text=await translate_text("⏭ Skip", user_lang),
+                    callback_data="format_skip",
                 )
             ],
         ]
@@ -135,27 +141,31 @@ async def show_next_actions(message: types.Message, state: FSMContext):
     await state.set_state(PlanFormat.waiting_for_next_action)
     user_id = message.from_user.id if message.from_user else 0
     user_lang = get_user_language(user_id) or "en"
-    await send_translated(message, await translate_text("What else would you like to do?", user_lang))
+    await send_translated(
+        message, await translate_text("What else would you like to do?", user_lang)
+    )
     keyboard = types.InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 types.InlineKeyboardButton(
                     text=await translate_text("⏰ Schedule reminders", user_lang),
-                    callback_data="schedule_reminders"
+                    callback_data="schedule_reminders",
                 )
             ],
             [
                 types.InlineKeyboardButton(
                     text=await translate_text("🔄 Create a new plan", user_lang),
-                    callback_data="new_plan"
+                    callback_data="new_plan",
                 )
             ],
             [
                 types.InlineKeyboardButton(
-                    text=await translate_text("👋 Nothing, have a nice day!", user_lang),
-                    callback_data="goodbye"
+                    text=await translate_text(
+                        "👋 Nothing, have a nice day!", user_lang
+                    ),
+                    callback_data="goodbye",
                 )
-            ]
+            ],
         ]
     )
     await message.answer("Choose your next action:", reply_markup=keyboard)
@@ -254,13 +264,13 @@ async def send_translated(message, text):
     if user_lang != "en":
         text = await translate_text(text, user_lang)
     # Clean/escape unsupported HTML/Markdown links and tags
-    text = re.sub(r'<(https?://[^>]+)>', r'\1', text)
-    text = re.sub(r'<([^ >]+)>', r'\1', text)
+    text = re.sub(r"<(https?://[^>]+)>", r"\1", text)
+    text = re.sub(r"<([^ >]+)>", r"\1", text)
     # If text is empty or only whitespace, send an informative message
-    if not text or text.strip() == '':
+    if not text or text.strip() == "":
         await message.answer("[Error] Empty text for user message.")
         return
     # If text is longer than Telegram limit, split into parts
     max_len = 4096
     for i in range(0, len(text), max_len):
-        await message.answer(text[i:i+max_len])
+        await message.answer(text[i : i + max_len])

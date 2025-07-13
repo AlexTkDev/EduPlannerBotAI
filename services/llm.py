@@ -85,7 +85,7 @@ async def generate_study_plan(topic: str) -> list:
     try:
         return await generate_groq_plan(topic)
     except Exception as e:
-        logger.error(f"Groq fallback error: {e}")
+        logger.error("Groq fallback error: %s", e)
     # Fallback: local
     return generate_local_plan(topic)
 
@@ -96,7 +96,7 @@ async def translate_text(text: str, target_lang: str) -> str:
         f"Translate the following text to {target_lang}. "
         f"Output only the translation, no explanations, no extra text.\n{text}"
     )
-    logger.info(f"Translating to {target_lang}: {text}")
+    logger.info("Translating to %s: %s", target_lang, text)
     # Try OpenAI
     if OPENAI_API_KEY and client is not None:
         try:
@@ -105,7 +105,7 @@ async def translate_text(text: str, target_lang: str) -> str:
                 messages=[{"role": "user", "content": prompt}],
             )
             translated = response.choices[0].message.content
-            logger.info(f"OpenAI translation result: {translated}")
+            logger.info("OpenAI translation result: %s", translated)
             if translated:
                 return translated.strip()
         except Exception:  # pylint: disable=broad-exception-caught
@@ -114,7 +114,7 @@ async def translate_text(text: str, target_lang: str) -> str:
     try:
         return await groq_translate_text(text, target_lang)
     except Exception as e:
-        logger.error(f"Groq translation fallback error: {e}")
+        logger.error("Groq translation fallback error: %s", e)
     return text
 
 async def generate_groq_plan(topic: str) -> list:
