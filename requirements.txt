@@ -6,3 +6,4 @@ fpdf
 tinydb
 pylint
 pytest
+pytest-asyncio

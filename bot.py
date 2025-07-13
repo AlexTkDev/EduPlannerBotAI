@@ -8,7 +8,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
 
 from config import TOKEN
-from handlers import start, planner
+from handlers import start, planner, language
 
 # Create necessary directories
 os.makedirs("plans", exist_ok=True)
@@ -40,6 +40,7 @@ dp = Dispatcher(storage=MemoryStorage())
 # Register handlers
 dp.include_router(start.router)
 dp.include_router(planner.router)
+dp.include_router(language.router)
 
 if __name__ == "__main__":
 
