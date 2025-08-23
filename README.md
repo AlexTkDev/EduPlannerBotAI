@@ -114,6 +114,21 @@ The bot includes a local TinyLlama 1.1B model for offline operation:
 - **Size**: ~1.1GB
 - **Requirements**: ~2GB RAM for optimal performance
 
+**Important**: The model file is not included in the repository due to size limitations. You must download it separately:
+
+```bash
+# Download the model (choose one method)
+# Option 1: Using wget
+wget -O models/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf \
+    "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
+
+# Option 2: Using curl
+curl -L -o models/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf \
+    "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
+```
+
+See [models/README.md](models/README.md) for detailed download instructions and troubleshooting.
+
 The model is automatically loaded at startup and provides offline fallback capability.
 
 ### 4. Create .env file
