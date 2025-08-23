@@ -4,6 +4,8 @@ import httpx  # third party import should be first
 from openai import OpenAI, RateLimitError, APIError, OpenAIError
 from config import OPENAI_API_KEY
 from config import GROQ_API_KEY
+from .local_llm import ask_local_llm
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -21,16 +23,50 @@ def generate_local_plan(topic: str) -> list:
     logger.info("Using local plan generator for topic: %s", topic)
 
     plan = [
-        f"Study plan for topic: {topic}",
+        f"📚 Study Plan for: {topic}",
         "",
-        "Step 1. Learn the basics of the topic",
-        f"Step 2. Get familiar with key concepts of {topic}",
-        f"Step 3. Explore usage examples of {topic}",
-        "Step 4. Complete practical tasks",
-        "Step 5. Reinforce the material with exercises",
-        "Step 6. Create your own project",
+        "🎯 Step 1: Foundation",
+        f"   • Research basic concepts of {topic}",
+        "   • Understand the core principles",
+        "   • Identify key terminology",
         "",
-        "Review the learned material regularly",
+        "📖 Step 2: Deep Dive",
+        f"   • Study advanced concepts of {topic}",
+        "   • Read relevant documentation",
+        "   • Watch tutorial videos",
+        "",
+        "💻 Step 3: Practical Application",
+        "   • Complete hands-on exercises",
+        "   • Work on small projects",
+        "   • Practice with real examples",
+        "",
+        "🔍 Step 4: Problem Solving",
+        "   • Solve practice problems",
+        "   • Work through case studies",
+        "   • Identify common challenges",
+        "",
+        "📝 Step 5: Review & Reinforcement",
+        "   • Summarize key learnings",
+        "   • Create study notes",
+        "   • Test your knowledge",
+        "",
+        "🚀 Step 6: Advanced Topics",
+        "   • Explore advanced features",
+        "   • Learn best practices",
+        "   • Stay updated with latest trends",
+        "",
+        "💡 Tips for Success:",
+        "   • Study consistently, even if just 30 minutes daily",
+        "   • Practice regularly to reinforce learning",
+        "   • Join study groups or online communities",
+        "   • Don't hesitate to ask questions",
+        "",
+        "📅 Recommended Study Schedule:",
+        "   • Week 1-2: Steps 1-2 (Foundation & Deep Dive)",
+        "   • Week 3-4: Steps 3-4 (Practical & Problem Solving)",
+        "   • Week 5-6: Steps 5-6 (Review & Advanced Topics)",
+        "",
+        "Good luck with your studies! 🎉"
     ]
 
     return plan
@@ -38,6 +74,8 @@ def generate_local_plan(topic: str) -> list:
 
 # pylint: disable=too-many-return-statements
 async def generate_study_plan(topic: str) -> list:
+    """Generate study plan with fallback chain: OpenAI → Groq → Local LLM → Simple Plan"""
+
     # Try OpenAI first
     if OPENAI_API_KEY and client is not None:
         for attempt in range(MAX_RETRIES):
@@ -82,22 +120,44 @@ async def generate_study_plan(topic: str) -> list:
                 break
 
     # Try Groq as fallback
+    if GROQ_API_KEY:
+        try:
+            logger.info("OpenAI failed, trying Groq for topic: %s", topic)
+            return await generate_groq_plan(topic)
+        except Exception as e:
+            logger.error("Groq fallback error: %s", e)
+            logger.info("Falling back to Local LLM")
+
+    # Try Local LLM as fallback
     try:
-        return await generate_groq_plan(topic)
+        logger.info("Groq failed, trying Local LLM for topic: %s", topic)
+        text = ask_local_llm(
+            f"Create a detailed study plan for the topic: {topic}. "
+            f"Split the plan into 5-7 steps."
+        )
+        if text and not text.startswith("[Local LLM error:"):
+            return text.split("\n")
+        logger.warning("Local LLM returned error, falling back to simple plan")
     except Exception as e:
-        logger.error("Groq fallback error: %s", e)
-    # Fallback: local
+        logger.error("Local LLM error: %s", e)
+        logger.info("Falling back to simple plan")
+
+    # Final fallback: simple local plan
+    logger.info("All LLM services failed, using simple local plan for topic: %s", topic)
     return generate_local_plan(topic)
 
 async def translate_text(text: str, target_lang: str) -> str:
+    """Translate text with fallback chain: OpenAI → Groq → Local LLM → Original text"""
     if target_lang == 'en':
         return text
+
     prompt = (
         f"Translate the following text to {target_lang}. "
         f"Output only the translation, no explanations, no extra text.\n{text}"
     )
     logger.info("Translating to %s: %s", target_lang, text)
-    # Try OpenAI
+
+    # Try OpenAI first
     if OPENAI_API_KEY and client is not None:
         try:
             response = client.chat.completions.create(
@@ -110,11 +170,31 @@ async def translate_text(text: str, target_lang: str) -> str:
                 return translated.strip()
         except Exception:  # pylint: disable=broad-exception-caught
             logger.warning("OpenAI translation failed, trying Groq")
+
     # Try Groq as fallback
+    if GROQ_API_KEY:
+        try:
+            logger.info("OpenAI failed, trying Groq for translation to %s", target_lang)
+            return await groq_translate_text(text, target_lang)
+        except Exception as e:
+            logger.error("Groq translation fallback error: %s", e)
+            logger.info("Falling back to Local LLM")
+
+    # Try Local LLM as fallback
     try:
-        return await groq_translate_text(text, target_lang)
+        logger.info("Groq failed, trying Local LLM for translation to %s", target_lang)
+        translated = ask_local_llm(
+            f"Translate the following text to {target_lang}. "
+            f"Output only the translation:\n{text}"
+        )
+        if translated and not translated.startswith("[Local LLM error:"):
+            return translated.strip()
+        logger.warning("Local LLM translation returned error, keeping original text")
     except Exception as e:
-        logger.error("Groq translation fallback error: %s", e)
+        logger.error("Local LLM translation error: %s", e)
+        logger.info("Keeping original text as final fallback")
+
+    # Final fallback: return original text
     return text
 
 async def generate_groq_plan(topic: str) -> list:
