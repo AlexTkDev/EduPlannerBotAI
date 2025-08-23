@@ -7,3 +7,4 @@ tinydb
 pylint
 pytest
 pytest-asyncio
+llama-cpp-python
