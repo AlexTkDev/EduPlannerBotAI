@@ -1,9 +1,13 @@
 import logging
 import asyncio
+import os
+from concurrent.futures import ProcessPoolExecutor
 import httpx  # third party import should be first
-from openai import OpenAI, RateLimitError, APIError, OpenAIError
+from openai import OpenAI
 from config import OPENAI_API_KEY
 from config import GROQ_API_KEY
+from config import OPENAI_MODEL
+from config import GROQ_MODEL
 from .local_llm import ask_local_llm
 
 
@@ -16,6 +20,75 @@ client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 # Max retries and delay between retries
 MAX_RETRIES = 3
 BASE_RETRY_DELAY = 5  # Base delay in seconds
+
+# Optional multiprocessing for local LLM
+USE_PROCESS_LLM = str(os.getenv("USE_PROCESS_LLM", "0")).lower() not in ("0", "false", "no", "")
+PROCESS_EXECUTOR = ProcessPoolExecutor(max_workers=(os.cpu_count() or 2)) if USE_PROCESS_LLM else None
+
+async def _ask_local_llm_async(prompt: str, max_tokens: int = 512) -> str:
+    """Run local LLM either in a separate process (if enabled) or a thread."""
+    if USE_PROCESS_LLM and PROCESS_EXECUTOR is not None:
+        loop = asyncio.get_running_loop()
+        # Pass only prompt, rely on default max_tokens in ask_local_llm, or pass explicitly
+        return await loop.run_in_executor(PROCESS_EXECUTOR, ask_local_llm, prompt, max_tokens)
+    # Threaded fallback to preserve test monkeypatching and responsiveness
+    return await asyncio.to_thread(ask_local_llm, prompt, max_tokens)
+
+async def _race_first_success(tasks):
+    """Race given coroutine tasks and return the first non-empty/valid result.
+    Cancels remaining tasks after first success.
+    """
+    pending = {asyncio.create_task(coro) for coro in tasks if coro is not None}
+    try:
+        while pending:
+            done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+            for d in done:
+                try:
+                    result = d.result()
+                    # Valid results: non-empty string or non-empty list
+                    if isinstance(result, list) and result:
+                        return result
+                    if isinstance(result, str) and result.strip() != "":
+                        return result
+                except Exception:  # pylint: disable=broad-exception-caught
+                    # Ignore failed task and continue
+                    continue
+        return None
+    finally:
+        for p in pending:
+            p.cancel()
+
+async def _openai_plan_async(topic: str):
+    if not (OPENAI_API_KEY and client is not None):
+        return None
+    def _call():
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[{"role": "user", "content": (
+                f"Create a detailed study plan for the topic: {topic}. "
+                f"Split the plan into 5-7 steps." )}],
+        )
+        return response.choices[0].message.content if response and response.choices else None
+    try:
+        text = await asyncio.to_thread(_call)
+        return text.strip().split("\n") if text else None
+    except Exception:  # pylint: disable=broad-exception-caught
+        return None
+
+async def _openai_translate_async(prompt: str):
+    if not (OPENAI_API_KEY and client is not None):
+        return None
+    def _call():
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.choices[0].message.content if response and response.choices else None
+    try:
+        text = await asyncio.to_thread(_call)
+        return text.strip() if text else None
+    except Exception:  # pylint: disable=broad-exception-caught
+        return None
 
 # Local plan generator
 def generate_local_plan(topic: str) -> list:
@@ -72,127 +145,135 @@ def generate_local_plan(topic: str) -> list:
     return plan
 
 
-# pylint: disable=too-many-return-statements
+# pylint: disable=too-many-return-statements, too-many-branches
 async def generate_study_plan(topic: str) -> list:
-    """Generate study plan with fallback chain: OpenAI → Groq → Local LLM → Simple Plan"""
+    """Generate study plan with aggressive concurrency: race OpenAI and Groq;
+    fallback to Local LLM (threaded/process) → Simple Plan.
+    """
 
-    # Try OpenAI first
+    # If both OpenAI and Groq available, race them
+    if (OPENAI_API_KEY and client is not None) and GROQ_API_KEY:
+        logger.info("Racing OpenAI and Groq for topic: %s", topic)
+        result = await _race_first_success([
+            _openai_plan_async(topic),
+            generate_groq_plan(topic),
+        ])
+        if isinstance(result, list) and result:
+            return result
+        logger.info("Race returned no valid result, falling back")
+
+    # If only OpenAI available, try it with retries (threaded)
     if OPENAI_API_KEY and client is not None:
         for attempt in range(MAX_RETRIES):
             try:
-                logger.info(
-                    "Generating study plan for topic: %s (attempt %s/%s)",
-                    topic, attempt + 1, MAX_RETRIES)
-
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": (
-                                f"Create a detailed study plan for the topic: {topic}. "
-                                f"Split the plan into 5-7 steps."
-                            ),
-                        }
-                    ],
-                )
-
-                text = response.choices[0].message.content
-                if not text:
-                    logger.error("OpenAI response content is None, falling back to Groq")
-                    break
-                return text.strip().split("\n")
-
-            except RateLimitError as e:
-                exponential_delay = BASE_RETRY_DELAY * (2 ** attempt)
-                logger.warning("Rate limit error: %s. Retrying in %s seconds...",
-                               str(e), exponential_delay)
-                await asyncio.sleep(exponential_delay)
-
-            except (APIError, OpenAIError) as e:
-                logger.error("OpenAI API error: %s", str(e))
-                logger.info("Falling back to Groq generator")
-                break
-
+                logger.info("OpenAI-only plan generation attempt %s/%s for %s",
+                            attempt + 1, MAX_RETRIES, topic)
+                lines = await _openai_plan_async(topic)
+                if lines:
+                    return lines
             except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.error("Unexpected error: %s", str(e))
-                logger.info("Falling back to Groq generator")
-                break
+                logger.error("OpenAI plan attempt failed: %s", e)
+            exponential_delay = BASE_RETRY_DELAY * (2 ** attempt)
+            await asyncio.sleep(exponential_delay)
 
-    # Try Groq as fallback
+    # If only Groq available, try it
     if GROQ_API_KEY:
         try:
-            logger.info("OpenAI failed, trying Groq for topic: %s", topic)
-            return await generate_groq_plan(topic)
+            logger.info("Using Groq for topic: %s", topic)
+            lines = await generate_groq_plan(topic)
+            if lines:
+                return lines
         except Exception as e:
-            logger.error("Groq fallback error: %s", e)
-            logger.info("Falling back to Local LLM")
+            logger.error("Groq error: %s", e)
 
-    # Try Local LLM as fallback
+    # Try Local LLM as fallback (threaded/process based on settings)
     try:
-        logger.info("Groq failed, trying Local LLM for topic: %s", topic)
-        text = ask_local_llm(
+        logger.info("Trying Local LLM for topic: %s", topic)
+        prompt = (
             f"Create a detailed study plan for the topic: {topic}. "
             f"Split the plan into 5-7 steps."
         )
+        text = await _ask_local_llm_async(prompt)
         if text and not text.startswith("[Local LLM error:"):
-            return text.split("\n")
-        logger.warning("Local LLM returned error, falling back to simple plan")
+            lines = text.split("\n")
+            if any(topic in line for line in lines):
+                return lines
+            logger.warning("Local LLM returned plan without topic mention, falling back to simple plan")
+        else:
+            logger.warning("Local LLM returned error, falling back to simple plan")
     except Exception as e:
         logger.error("Local LLM error: %s", e)
-        logger.info("Falling back to simple plan")
 
     # Final fallback: simple local plan
     logger.info("All LLM services failed, using simple local plan for topic: %s", topic)
     return generate_local_plan(topic)
 
+# pylint: disable=too-many-branches
 async def translate_text(text: str, target_lang: str) -> str:
-    """Translate text with fallback chain: OpenAI → Groq → Local LLM → Original text"""
-    if target_lang == 'en':
+    """Translate text with aggressive concurrency: race OpenAI and Groq; fallback to
+    Local LLM (threaded) → Original text.
+    """
+    # Handle empty or whitespace-only text
+    if text is None or str(text).strip() == "":
+        return text
+
+    # Normalize language code (e.g., 'ru-RU' -> 'ru', 'es_ES' -> 'es')
+    lang = (target_lang or "en").strip().lower()
+    if "-" in lang:
+        lang = lang.split("-")[0]
+    if "_" in lang:
+        lang = lang.split("_")[0]
+
+    if lang == 'en':
         return text
 
     prompt = (
-        f"Translate the following text to {target_lang}. "
+        f"Translate the following text to {lang}. "
         f"Output only the translation, no explanations, no extra text.\n{text}"
     )
-    logger.info("Translating to %s: %s", target_lang, text)
+    logger.info("Translating to %s: %s", lang, text)
 
-    # Try OpenAI first
+    # If both providers available, race them
+    if (OPENAI_API_KEY and client is not None) and GROQ_API_KEY:
+        logger.info("Racing OpenAI and Groq for translation to %s", lang)
+        winner = await _race_first_success([
+            _openai_translate_async(prompt),
+            groq_translate_text(text, lang),
+        ])
+        if isinstance(winner, str) and winner.strip() != "":
+            return winner.strip()
+
+    # If only OpenAI available
     if OPENAI_API_KEY and client is not None:
         try:
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-            )
-            translated = response.choices[0].message.content
-            logger.info("OpenAI translation result: %s", translated)
+            translated = await _openai_translate_async(prompt)
             if translated:
                 return translated.strip()
         except Exception:  # pylint: disable=broad-exception-caught
-            logger.warning("OpenAI translation failed, trying Groq")
+            logger.warning("OpenAI translation failed, trying next fallback")
 
-    # Try Groq as fallback
+    # If only Groq available
     if GROQ_API_KEY:
         try:
-            logger.info("OpenAI failed, trying Groq for translation to %s", target_lang)
-            return await groq_translate_text(text, target_lang)
+            translated = await groq_translate_text(text, lang)
+            if translated:
+                return translated.strip()
         except Exception as e:
-            logger.error("Groq translation fallback error: %s", e)
-            logger.info("Falling back to Local LLM")
+            logger.error("Groq translation error: %s", e)
 
-    # Try Local LLM as fallback
+    # Local LLM fallback (process/thread based on settings)
     try:
-        logger.info("Groq failed, trying Local LLM for translation to %s", target_lang)
-        translated = ask_local_llm(
-            f"Translate the following text to {target_lang}. "
+        logger.info("Trying Local LLM for translation to %s", lang)
+        prompt_local = (
+            f"Translate the following text to {lang}. "
             f"Output only the translation:\n{text}"
         )
+        translated = await _ask_local_llm_async(prompt_local)
         if translated and not translated.startswith("[Local LLM error:"):
             return translated.strip()
         logger.warning("Local LLM translation returned error, keeping original text")
     except Exception as e:
         logger.error("Local LLM translation error: %s", e)
-        logger.info("Keeping original text as final fallback")
 
     # Final fallback: return original text
     return text
@@ -206,7 +287,7 @@ async def generate_groq_plan(topic: str) -> list:
         "Content-Type": "application/json"
     }
     data = {
-        "model": "llama3-8b-8192",
+        "model": GROQ_MODEL,
         "messages": [
             {
                 "role": "user",
@@ -225,18 +306,29 @@ async def generate_groq_plan(topic: str) -> list:
             return text.strip().split("\n")
         except httpx.HTTPStatusError as e:
             logger.error(f"Groq HTTP error: {e}")
-            return ["[Groq error: unable to generate plan]"]
+            # Raise to allow upper-level fallback (Local LLM -> Simple plan)
+            raise RuntimeError("Groq error: unable to generate plan") from e
         except Exception as e:
             logger.error(f"Groq unexpected error: {e}")
-            return ["[Groq error: unable to generate plan]"]
+            # Raise to allow upper-level fallback
+            raise RuntimeError("Groq error: unable to generate plan") from e
 
-async def groq_translate_text(text: str, target_lang: str) -> str:
-    if target_lang == 'en':
+async def groq_translate_text(text: str, target_lang: str) -> str | None:
+    # Handle empty text early
+    if text is None or str(text).strip() == "":
+        return text
+    # Normalize lang (defensive, though translate_text already normalizes)
+    lang = (target_lang or "en").strip().lower()
+    if "-" in lang:
+        lang = lang.split("-")[0]
+    if "_" in lang:
+        lang = lang.split("_")[0]
+    if lang == 'en':
         return text
     if not GROQ_API_KEY:
-        return text
+        return None
     prompt = (
-        f"Translate the following text to {target_lang}. "
+        f"Translate the following text to {lang}. "
         f"Output only the translation, no explanations, no extra text.\n{text}"
     )
     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -245,7 +337,7 @@ async def groq_translate_text(text: str, target_lang: str) -> str:
         "Content-Type": "application/json"
     }
     data = {
-        "model": "llama3-8b-8192",
+        "model": GROQ_MODEL,
         "messages": [{"role": "user", "content": prompt}],
     }
     async with httpx.AsyncClient() as client:
@@ -255,6 +347,7 @@ async def groq_translate_text(text: str, target_lang: str) -> str:
             translated = response.json()["choices"][0]["message"]["content"]
             if translated:
                 return translated.strip()
+            return None
         except Exception as e:
             logger.error(f"Groq translation error: {e}")
-    return text
+            return None

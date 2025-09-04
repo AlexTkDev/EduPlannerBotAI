@@ -4,9 +4,14 @@ db = TinyDB("db.json")
 
 
 def save_user_plan(user_id: int, plan: list):
-    """Save user study plan to the database"""
+    """Save or update user's study plan without overwriting other fields (e.g., language)."""
     user_query = Query()
-    db.upsert({"user_id": user_id, "plan": plan}, user_query.user_id == user_id)
+    # Insert record if it doesn't exist
+    if not db.search(user_query.user_id == user_id):
+        db.insert({"user_id": user_id, "plan": plan})
+    else:
+        # Update only the plan field to preserve other data
+        db.update({"plan": plan}, user_query.user_id == user_id)
 
 
 def get_user_plan(user_id: int) -> list:

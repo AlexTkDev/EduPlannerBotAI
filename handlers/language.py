@@ -35,8 +35,14 @@ async def set_language(message: types.Message, state: FSMContext):
     lang_code = [k for k, v in LANGUAGES.items() if v == message.text][0]
     user_id = message.from_user.id if message.from_user else 0
     set_user_language(user_id, lang_code)
-    lang_set_msg = await translate_text(f"Language set to {LANGUAGES[lang_code]}", lang_code)
-    await send_translated(message, lang_set_msg)
+    # Use fixed localized confirmation to avoid relying on online translators here
+    confirmations = {
+        "en": "Language set to English",
+        "ru": "Язык установлен: Русский",
+        "es": "Idioma establecido: Español",
+    }
+    lang_set_msg = confirmations.get(lang_code, f"Language set to {LANGUAGES[lang_code]}")
+    # Send confirmation without translation dependency
     await message.answer(lang_set_msg, reply_markup=types.ReplyKeyboardRemove())
     await state.clear()
     # Send greeting and next-step instruction in the chosen language
