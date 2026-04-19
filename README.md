@@ -4,10 +4,10 @@
 
 > **Note:** All code comments and docstrings are in English for international collaboration and code clarity. All user-facing messages and buttons are automatically translated to the user's selected language.
 
-## 🚀 What's New in v4.0.0
+## 🚀 What's New in v4.1.0
 
 - **🆕 Multi-Level LLM Architecture**: OpenAI → Groq → Local LLM → Fallback Plan
-- **🆕 Local LLM Integration**: TinyLlama 1.1B model for offline operation
+- **🆕 Local LLM Integration**: Google Gemma 4 model for offline operation
 - **🆕 Guaranteed Availability**: Bot works even without internet connection
 - **🆕 Enhanced Fallback System**: Robust error handling and service switching
 - **🆕 Improved Plan Quality**: Professional-grade study plan templates
@@ -37,7 +37,7 @@ The bot features a sophisticated 4-tier fallback system that ensures reliable se
 |----------|---------|-------------|----------|
 | **1** | **OpenAI GPT** | Primary model for high-quality plans | Best quality, when available |
 | **2** | **Groq** | Secondary model, OpenAI alternative | Fast fallback, reliable service |
-| **3** | **Local LLM** | TinyLlama 1.1B local model | Offline operation, privacy |
+| **3** | **Local LLM** | Google Gemma 4 local model | Offline operation, privacy |
 | **4** | **Fallback Plan** | Predefined professional template | Guaranteed availability |
 
 ### ⚡ How It Works
@@ -46,7 +46,7 @@ The bot automatically attempts to generate study plans using available services 
 
 1. **Primary**: OpenAI API (if `OPENAI_API_KEY` is set and quota available)
 2. **Fallback 1**: [Groq](https://groq.com/) (if `GROQ_API_KEY` is set)
-3. **Fallback 2**: Local LLM (TinyLlama 1.1B model)
+3. **Fallback 2**: Local LLM (Google Gemma 4 model)
 4. **Last Resort**: Local plan generator (comprehensive template)
 
 ### 🔄 Translation Fallback
@@ -131,24 +131,24 @@ pip install -r requirements.txt
 ```
 
 ### 3. Set up Local LLM (Recommended)
-The bot includes a local TinyLlama 1.1B model for offline operation:
+The bot includes a local Google Gemma 4 model for offline operation:
 
-- **Model**: TinyLlama 1.1B Chat v1.0 (Q4_K_M quantized)
+- **Model**: Google Gemma 4 Instruct (GGUF, quantized)
 - **Format**: GGUF format
-- **Size**: ~1.1GB
-- **Requirements**: ~2GB RAM for optimal performance
+- **Size**: depends on variant/quantization (typically several GB)
+- **Requirements**: depends on variant (recommended 8GB+ RAM for 4B class models)
 
 **Important**: The model file is not included in the repository due to size limitations. You must download it separately:
 
 ```bash
 # Download the model (choose one method)
 # Option 1: Using wget
-wget -O models/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf \
-    "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
+wget -O models/google-gemma-4b-it-Q4_K_M.gguf \
+    "<YOUR_GEMMA4_GGUF_DOWNLOAD_URL>"
 
 # Option 2: Using curl
-curl -L -o models/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf \
-    "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
+curl -L -o models/google-gemma-4b-it-Q4_K_M.gguf \
+    "<YOUR_GEMMA4_GGUF_DOWNLOAD_URL>"
 ```
 
 See [models/README.md](models/README.md) for detailed download instructions and troubleshooting.
@@ -161,6 +161,10 @@ Create a `.env` file in the root directory or rename `.env.example` to `.env` an
 BOT_TOKEN=your_telegram_bot_token
 OPENAI_API_KEY=your_openai_api_key
 GROQ_API_KEY=your_groq_api_key
+LOCAL_LLM_MODEL_PATH=models/google-gemma-4b-it-Q4_K_M.gguf
+LOCAL_LLM_CONTEXT=4096
+LOCAL_LLM_THREADS=4
+LOCAL_LLM_MAX_TOKENS=512
 ```
 All environment variables are loaded from `.env` automatically.
 
@@ -200,7 +204,7 @@ EduPlannerBotAI/
 │   └── language.py         # Language selection and filter
 ├── services/               # Core logic and helper functions
 │   ├── llm.py              # Multi-level LLM integration (OpenAI → Groq → Local LLM → Fallback)
-│   ├── local_llm.py        # Local TinyLlama model integration
+│   ├── local_llm.py        # Local Google Gemma 4 model integration
 │   ├── pdf.py              # PDF export
 │   ├── txt.py              # TXT export
 │   ├── reminders.py        # Reminder simulation
@@ -221,7 +225,7 @@ EduPlannerBotAI/
 | **aiogram** | Telegram Bot Framework | 3.x |
 | **OpenAI API** | Primary LLM provider | Latest |
 | **Groq API** | Secondary LLM provider | Latest |
-| **Local LLM** | TinyLlama 1.1B offline | GGUF |
+| **Local LLM** | Google Gemma 4 offline | GGUF |
 | **llama-cpp-python** | Local LLM inference | Latest |
 | **fpdf** | PDF file generation | Latest |
 | **TinyDB** | Lightweight NoSQL database | Latest |
@@ -236,11 +240,11 @@ EduPlannerBotAI/
 - **Testing**: pytest with 100% coverage
 - **Style**: PEP8 compliant
 
-## 📝 Release 4.0.0 Highlights
+## 📝 Release 4.1.0 Highlights
 
 ### 🆕 Major Features
 - **Multi-Level LLM Architecture**: OpenAI → Groq → Local LLM → Fallback Plan
-- **Local LLM Integration**: TinyLlama 1.1B model for offline operation
+- **Local LLM Integration**: Google Gemma 4 model for offline operation
 - **Guaranteed Availability**: Bot works even without internet connection
 - **Enhanced Fallback System**: Robust error handling and service switching
 
@@ -309,4 +313,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**EduPlannerBotAI v4.0.0** represents a significant milestone, transforming the bot from a simple OpenAI-dependent service into a robust, enterprise-grade system with guaranteed availability and offline operation capabilities. This release sets the foundation for future enhancements while maintaining backward compatibility and improving overall user experience.
+**EduPlannerBotAI v4.1.0** represents a significant milestone, transforming the bot from a simple OpenAI-dependent service into a robust, enterprise-grade system with guaranteed availability and offline operation capabilities. This release sets the foundation for future enhancements while maintaining backward compatibility and improving overall user experience.
