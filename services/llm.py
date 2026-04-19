@@ -8,7 +8,7 @@ from config import OPENAI_API_KEY
 from config import GROQ_API_KEY
 from config import OPENAI_MODEL
 from config import GROQ_MODEL
-from .local_llm import ask_local_llm
+from services.local_llm import ask_local_llm
 
 
 # Configure logging
