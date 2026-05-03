@@ -8,12 +8,17 @@ from services.db import get_user_language
 
 router = Router()
 
+COMPANY_NAME = "ForgeFlow Tech"
+COMPANY_PROFILE_URL = "https://www.upwork.com/agencies/2050880168568328242/"
+
 
 @router.message(Command("start"))
 async def start_handler(message: types.Message, state: FSMContext):
     await send_translated(
         message,
-        "👋 Hi! I am a bot for creating study plans.\nUse the /plan command to start creating a study plan.",
+        "👋 Hi! I am a bot for creating study plans.\n"
+        "Use the /plan command to start creating a study plan.\n\n"
+        f"Developed for {COMPANY_NAME}: {COMPANY_PROFILE_URL}",
     )
     # Immediately prompt for language selection
     user_id = message.from_user.id if message.from_user else 0
@@ -27,6 +32,5 @@ async def start_handler(message: types.Message, state: FSMContext):
         one_time_keyboard=True,
     )
     prompt = await translate_text("Choose your language / Выберите язык:", user_lang)
-    await send_translated(message, prompt)
     await message.answer(prompt, reply_markup=keyboard)
     await state.set_state("waiting_for_language")

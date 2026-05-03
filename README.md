@@ -1,6 +1,8 @@
 # EduPlannerBotAI
 
-**EduPlannerBotAI** is a Telegram bot built with `aiogram 3.x` and powered by a revolutionary multi-level LLM architecture. It generates personalized study plans, exports them to PDF/TXT, and sends reminders as Telegram messages. All data is stored using TinyDB (no other DBs supported).
+**EduPlannerBotAI** is a Telegram bot built with `aiogram 3.x` and powered by a multi-level LLM architecture. It generates personalized study plans, exports them to PDF/TXT, and sends reminders as Telegram messages. All data is stored using TinyDB (no other DBs supported).
+
+Developed for **ForgeFlow Tech**: https://www.upwork.com/agencies/2050880168568328242/
 
 > **Note:** All code comments and docstrings are in English for international collaboration and code clarity. All user-facing messages and buttons are automatically translated to the user's selected language.
 
@@ -313,4 +315,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**EduPlannerBotAI v4.1.0** represents a significant milestone, transforming the bot from a simple OpenAI-dependent service into a robust, enterprise-grade system with guaranteed availability and offline operation capabilities. This release sets the foundation for future enhancements while maintaining backward compatibility and improving overall user experience.
+**EduPlannerBotAI v4.1.0** transforms the bot from a simple OpenAI-dependent service into a robust system with fallback providers and offline operation capability. This release keeps backward compatibility while improving reliability and user experience.

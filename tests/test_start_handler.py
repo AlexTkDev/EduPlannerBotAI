@@ -30,8 +30,12 @@ class DummyState:
         pass
 
 @pytest.mark.asyncio
-async def test_start_handler():
+async def test_start_handler(monkeypatch):
+    monkeypatch.setattr("handlers.start.get_user_language", lambda _user_id: "en")
+    monkeypatch.setattr("handlers.planner.get_user_language", lambda _user_id: "en")
     message = DummyMessage()
     state = DummyState()
     await start_handler(message, state)
-    assert any("bot for creating study plans" in msg for msg in message.all_answers) 
+    assert any("bot for creating study plans" in msg for msg in message.all_answers)
+    assert any("ForgeFlow Tech" in msg for msg in message.all_answers)
+    assert len(message.all_answers) == 2

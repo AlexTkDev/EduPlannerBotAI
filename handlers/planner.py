@@ -117,7 +117,7 @@ async def process_format(callback: types.CallbackQuery, state: FSMContext):
                     ),
                 ),
             )
-    else:
+    elif selected_format == "txt":
         txt_path = await save_plan_to_txt(
             plan, callback.from_user.id if callback.from_user else 0
         )
@@ -131,19 +131,29 @@ async def process_format(callback: types.CallbackQuery, state: FSMContext):
                     ),
                 ),
             )
+    elif selected_format != "skip":
+        if isinstance(callback.message, Message):
+            await send_translated(callback.message, "Unknown file format selected.")
+        return
     if isinstance(callback.message, Message):
-        await show_next_actions(callback.message, state)
+        await show_next_actions(
+            callback.message,
+            state,
+            callback.from_user.id if callback.from_user else 0,
+        )
 
 
-async def show_next_actions(message: types.Message, state: FSMContext):
+async def show_next_actions(
+    message: types.Message,
+    state: FSMContext,
+    user_id: int | None = None,
+):
     if not isinstance(message, Message):
         return
     await state.set_state(PlanFormat.waiting_for_next_action)
-    user_id = message.from_user.id if message.from_user else 0
+    if user_id is None:
+        user_id = message.from_user.id if message.from_user else 0
     user_lang = get_user_language(user_id) or "en"
-    await send_translated(
-        message, await translate_text("What else would you like to do?", user_lang)
-    )
     keyboard = types.InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -168,7 +178,8 @@ async def show_next_actions(message: types.Message, state: FSMContext):
             ],
         ]
     )
-    await message.answer("Choose your next action:", reply_markup=keyboard)
+    prompt = await translate_text("What else would you like to do?", user_lang)
+    await message.answer(prompt, reply_markup=keyboard)
 
 
 @router.callback_query(

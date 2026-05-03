@@ -26,7 +26,6 @@ async def choose_language(message: types.Message, state: FSMContext):
         one_time_keyboard=True,
     )
     prompt = await translate_text("Choose your language / Выберите язык:", user_lang)
-    await send_translated(message, prompt)
     await message.answer(prompt, reply_markup=keyboard)
     await state.set_state("waiting_for_language")
 
@@ -48,8 +47,8 @@ async def set_language(message: types.Message, state: FSMContext):
     # Send greeting and next-step instruction in the chosen language
     greeting = (
         "👋 Hi! I am a bot for creating study plans.\n"
-        "Use the /plan command to start creating a study plan."
+        "Use the /plan command to start creating a study plan.\n\n"
+        "Developed for ForgeFlow Tech: "
+        "https://www.upwork.com/agencies/2050880168568328242/"
     )
-    if lang_code != "en":
-        greeting = await translate_text(greeting, lang_code)
-    await send_translated(message, greeting) 
+    await send_translated(message, greeting)
